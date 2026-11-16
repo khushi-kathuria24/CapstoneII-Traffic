@@ -1,3 +1,19 @@
+def runCommand(String command, boolean allowFailure = false) {
+  if (isUnix()) {
+    if (allowFailure) {
+      sh(script: command, returnStatus: true)
+    } else {
+      sh command
+    }
+  } else {
+    if (allowFailure) {
+      bat(script: command, returnStatus: true)
+    } else {
+      bat command
+    }
+  }
+}
+
 pipeline {
   agent any
   environment {
@@ -7,14 +23,20 @@ pipeline {
     stage('Checkout') { steps { checkout scm } }
     stage('Install and test') {
       steps {
-        sh 'npm install'
-        sh 'npm run install:all'
-        sh 'npm test'
-        sh 'npm run build'
+        script {
+          runCommand('npm install')
+          runCommand('npm run install:all')
+          runCommand('npm test')
+          runCommand('npm run build')
+        }
       }
     }
     stage('Build Docker image') {
-      steps { sh 'docker build -t $IMAGE_NAME:$BUILD_NUMBER .' }
+      steps {
+        script {
+          runCommand("docker build -t ${env.IMAGE_NAME}:${env.BUILD_NUMBER} .")
+        }
+      }
     }
     stage('Deploy') {
       steps {
@@ -25,13 +47,19 @@ pipeline {
           string(credentialsId: 'traffic-client-url', variable: 'CLIENT_URL'),
           string(credentialsId: 'traffic-google-callback-url', variable: 'GOOGLE_CALLBACK_URL')
         ]) {
-          sh 'docker compose down || true'
-          sh 'docker compose up -d --build'
+          script {
+            runCommand('docker compose down', true)
+            runCommand('docker compose up -d --build')
+          }
         }
       }
     }
   }
   post {
-    always { sh 'docker image prune -f || true' }
+    always {
+      script {
+        runCommand('docker image prune -f', true)
+      }
+    }
   }
 }
