@@ -49,7 +49,7 @@ pipeline {
         ]) {
           script {
             runCommand('docker compose down', true)
-            runCommand('docker compose up -d --build')
+            runCommand('docker compose up -d')
           }
         }
       }
@@ -58,7 +58,7 @@ pipeline {
   post {
     always {
       script {
-        runCommand('docker image prune -f', true)
+        runCommand('docker image prune -f --filter "until=24h"', true)
       }
     }
   }

@@ -1,4 +1,4 @@
-FROM node:22-alpine AS client-build
+FROM node:22-slim AS client-build
 WORKDIR /app
 COPY package.json ./
 COPY client/package.json client/package.json
@@ -6,7 +6,7 @@ RUN npm install --prefix client
 COPY client client
 RUN npm run build --prefix client
 
-FROM node:22-alpine
+FROM node:22-slim
 WORKDIR /app
 ENV NODE_ENV=production
 COPY server/package.json server/package.json
