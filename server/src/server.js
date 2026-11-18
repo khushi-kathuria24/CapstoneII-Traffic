@@ -31,7 +31,12 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   store: process.env.MONGODB_URI ? MongoStore.create({ mongoUrl: process.env.MONGODB_URI }) : undefined,
-  cookie: { httpOnly: true, sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", secure: process.env.NODE_ENV === "production", maxAge: 1000 * 60 * 60 * 24 * 7 }
+  cookie: {
+    httpOnly: true,
+    sameSite: process.env.SECURE_COOKIES === "true" ? "none" : "lax",
+    secure: process.env.SECURE_COOKIES === "true",
+    maxAge: 1000 * 60 * 60 * 24 * 7
+  }
 }));
 app.use(passport.initialize());
 app.use(passport.session());
@@ -72,7 +77,8 @@ app.post("/api/auth/signup", async (req, res) => {
 });
 app.post("/api/auth/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const email = String(req.body.email || "").trim().toLowerCase();
+    const password = String(req.body.password || "");
     const user = await User.findOne({ email }).select("+password");
     const isDemo = email === "demo@traffic.ai" && password === "Demo@123";
     if (!user && isDemo) {
@@ -82,6 +88,29 @@ app.post("/api/auth/login", async (req, res) => {
     if (!user || !user.password || !(await bcrypt.compare(password, user.password))) return res.status(401).json({ message: "Invalid email or password." });
     req.login(user, (error) => error ? res.status(500).json({ message: "Unable to start your session." }) : res.json({ user: publicUser(user) }));
   } catch (error) { res.status(500).json({ message: "Unable to sign in." }); }
+});
+app.post("/api/auth/demo", async (req, res) => {
+  try {
+    const email = "demo@traffic.ai";
+    const demo = await User.findOneAndUpdate(
+      { email },
+      {
+        $set: {
+          name: "Demo Operator",
+          email,
+          password: await bcrypt.hash("Demo@123", 12),
+          role: "admin"
+        }
+      },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+    req.login(demo, (error) => error
+      ? res.status(500).json({ message: "Unable to start the demo session." })
+      : res.json({ user: publicUser(demo) }));
+  } catch (error) {
+    console.error("Demo login failed:", error);
+    res.status(500).json({ message: "Unable to start the demo session." });
+  }
 });
 app.get("/auth/google", (req, res, next) => process.env.GOOGLE_CLIENT_ID ? passport.authenticate("google", { scope: ["profile", "email"] })(req, res, next) : res.status(503).send("Google OAuth is not configured. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to the server environment."));
 app.get("/auth/google/callback", passport.authenticate("google", { failureRedirect: `${clientUrl}?authError=google` }), (_req, res) => res.redirect(clientUrl));

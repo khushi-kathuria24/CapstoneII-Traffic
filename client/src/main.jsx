@@ -58,6 +58,24 @@ function Login({ onLogin }) {
   const [status, setStatus] = useState({ type: "", message: "" });
   const [loading, setLoading] = useState(false);
 
+  const startDemo = async () => {
+    setStatus({ type: "", message: "" });
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/api/auth/demo`, {
+        method: "POST",
+        credentials: "include"
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Unable to start demo.");
+      onLogin(data.user);
+    } catch (error) {
+      setStatus({ type: "error", message: error.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const update = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value });
   };
@@ -122,7 +140,7 @@ function Login({ onLogin }) {
           </form>
           <div className="divider"><span>OR</span></div>
           <a className="google-button" href={`${API_URL}/auth/google`}><GoogleMark /> Continue with Google</a>
-          <p className="demo-hint">Demo access: <strong>demo@traffic.ai</strong> / <strong>Demo@123</strong></p>
+          <p className="demo-hint"><button type="button" className="demo-button" onClick={startDemo} disabled={loading}>Demo access: <strong>demo@traffic.ai</strong> / <strong>Demo@123</strong></button></p>
           <p className="switch-auth">{isSignup ? "Already have an account?" : "New to the platform?"} <button onClick={() => { setIsSignup(!isSignup); setStatus({ type: "", message: "" }); }}>{isSignup ? "Sign in" : "Create account"}</button></p>
         </div>
         <div className="form-footer"><span><LockKeyhole size={13} /> Secure authentication</span><span>© 2025 Intelligent Traffic</span></div>
