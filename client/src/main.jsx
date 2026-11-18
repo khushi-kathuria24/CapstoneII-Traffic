@@ -4,14 +4,29 @@ import {
   Activity,
   ArrowRight,
   Bell,
+  Bot,
+  Building2,
+  Camera,
   CarFront,
   CheckCircle2,
+  CircleAlert,
+  ClipboardList,
+  Crosshair,
+  Gauge,
+  Hospital,
   Eye,
   LockKeyhole,
+  LogOut,
   Mail,
   MapPin,
   Menu,
+  ParkingCircle,
+  Radio,
+  Search,
   ShieldCheck,
+  Siren,
+  Signal,
+  TrendingUp,
   TrafficCone,
   UserRound,
   X
@@ -116,26 +131,89 @@ function Login({ onLogin }) {
   );
 }
 
+function Metric({ icon, label, value, detail, tone = "blue" }) {
+  return <div className={`metric-card tone-${tone}`}><span className="metric-icon">{icon}</span><div><small>{label}</small><strong>{value}</strong>{detail && <p>{detail}</p>}</div></div>;
+}
+
+function AgentCenter() {
+  const agents = [
+    ["SITA Signal Optimizer", "Signal timing and congestion balancing", "Active", "#5a78ed"],
+    ["Vision-Violation Agent", "Plate, helmet, seatbelt and lane detection", "Active", "#8b66d9"],
+    ["Guardian Encroachment Agent", "Restricted zone and vendor detection", "Monitoring", "#e59a40"],
+    ["Emergency Corridor Agent", "Priority green waves and route clearance", "Active", "#e95d65"],
+    ["Road Intelligence Agent", "Pattern and incident forecasting", "Learning", "#3ba78a"]
+  ];
+  return <section><div className="page-banner purple"><div><p>COORDINATED AI OPERATIONS</p><h1>AI Agent Center</h1><span>Autonomous traffic agents operating across the Gujarat network</span></div><span className="active-badge"><i /> 5 AGENTS ACTIVE</span></div><div className="agent-grid">{agents.map(([name, detail, status, color]) => <article className="agent-card" key={name}><div className="agent-icon" style={{ background: `${color}18`, color }}><Bot /></div><span className="agent-status">{status}</span><h2>{name}</h2><p>{detail}</p><div className="agent-health"><span>Confidence</span><strong>{status === "Learning" ? "86%" : "98%"}</strong></div><div className="agent-progress"><i style={{ width: status === "Learning" ? "86%" : "98%", background: color }} /></div><button>Open agent <ArrowRight size={14} /></button></article>)}</div></section>;
+}
+
+function EncroachmentView() {
+  const cases = [
+    ["HAWKER in restricted area", "Indiranagar", "HIGH", "Hawker detected in restricted-area"],
+    ["CART in road lane", "Brigade Road", "HIGH", "Cart detected in road lane"],
+    ["VENDOR near bus stop", "Ashram Road", "MEDIUM", "Vendor congestion near bus stop"]
+  ];
+  return <section><div className="page-banner purple"><div><p>AI ROAD OBSTRUCTION MONITOR</p><h1>Encroachment &amp; Obstruction</h1><span>Unauthorized hawkers, vendors and road obstructions</span></div><span className="active-badge"><i /> GUARDIAN ACTIVE</span></div><div className="metric-row"><Metric icon={<Camera />} label="TOTAL DETECTIONS" value="6" tone="blue" /><Metric icon={<CircleAlert />} label="ACTIVE CASES" value="6" tone="orange" /><Metric icon={<Bell />} label="ALERTS SENT" value="6" tone="red" /><Metric icon={<CheckCircle2 />} label="RESOLVED" value="0" tone="green" /></div><div className="case-filter"><button className="active">All</button><button>Active</button><button>Detected</button><button>Alert sent</button><button>Resolved</button></div><div className="case-list">{cases.map(([title, place, severity, detail]) => <article className="case-card" key={title}><div className="case-camera"><Camera /><span>{title.startsWith("HAWKER") ? "CAM001" : title.startsWith("CART") ? "CAM002" : "CAM004"}</span></div><div className="case-info"><div><span className={`severity ${severity.toLower?.()}`}>{severity}</span><span className="alert-tag">AI VERIFIED</span></div><h2>{title}</h2><p><MapPin size={14} /> {place}<small>{detail}</small></p></div><div className="case-actions"><button className="resolve"><CheckCircle2 size={14} /> Resolve</button><button className="ignore">Ignore</button></div></article>)}</div></section>;
+}
+
+function EmergencyView() {
+  return <section><div className="page-banner red"><div><p><Siren size={18} /> PRIORITY RESPONSE NETWORK</p><h1>AI Green Corridor</h1><span>Real-time emergency vehicle tracking with intelligent traffic clearance</span></div><span className="active-badge"><i /> ACTIVE</span></div><div className="metric-row"><Metric icon={<Siren />} label="ACTIVE EMERGENCIES" value="3" tone="red" /><Metric icon={<Activity />} label="AVG TIME SAVED" value="8m" tone="green" /><Metric icon={<Signal />} label="SIGNALS CLEARED" value="24" tone="blue" /><Metric icon={<CheckCircle2 />} label="SUCCESS RATE" value="98%" tone="purple" /></div><div className="emergency-grid">{[["DR617", "Ambulance", "Smart Horizon College Hub"], ["FIRE377", "Fire Truck", "Electronic City Tollgate"]].map(([id, type, place]) => <article className="emergency-card" key={id}><div className="route-map"><span className="live-route">LIVE TRACKING</span><div className="route-line"><i /><i /><i /><i /><i /></div><span className="speed">Speed<strong>65 km/h</strong></span></div><div className="vehicle-title"><span><CarFront /></span><div><strong>{id}</strong><small>{type}</small></div><em>ACTIVE</em></div><div className="vehicle-times"><div><small>Normal Time</small><strong>25m</strong></div><div><small>Corridor Time</small><strong>15m</strong></div><div><small>Time Saved</small><strong>10m</strong></div></div><p><MapPin size={15} /> <span><small>Destination</small><strong>{place}</strong></span></p></article>)}</div></section>;
+}
+
+function AnalyticsView() {
+  const bars = [52, 3, 70, 48, 59, 64];
+  return <section><div className="analytics-heading"><p>SYSTEM TELEMETRY &amp; ANALYTICS</p><h1>Traffic Analytics &amp; Insights</h1><span>Real-time corridor throughput, signal telemetry and fine enforcement revenue</span></div><div className="metric-row"><Metric icon={<Activity />} label="TOTAL ACTIVE SIGNALS" value="6" tone="blue" /><Metric icon={<TrendingUp />} label="FINES COLLECTED" value="₹0" tone="green" /><Metric icon={<CircleAlert />} label="PENDING FINES" value="4" tone="orange" /><Metric icon={<ClipboardList />} label="TOTAL FINES ISSUED" value="4" tone="purple" /></div><article className="analytics-chart"><div className="chart-heading"><div><h2>Vehicle Volume by Signal Intersection</h2><p>Live vehicle flow across monitored junctions</p></div><span className="sync-badge"><i /> Sync Active</span></div><div className="vertical-bars">{bars.map((height, index) => <div className="vertical-bar-wrap" key={index}><strong>{height}</strong><div style={{ height: `${height}%` }} /><small>SIG{String(index + 1).padStart(3, "0")}</small></div>)}</div></article></section>;
+}
+
+function GeneralView({ title }) {
+  const descriptions = {
+    "SENTINEL-X Command Center": "Unified city traffic command and incident response.",
+    "Connected Vehicle Safety": "Connected vehicles, edge devices and roadside unit telemetry.",
+    "Gujarat Traffic Map": "Live route congestion and intersection status across Gujarat.",
+    "Parking Management": "Real-time occupancy and enforcement across city parking zones.",
+    "Violations": "Detected traffic violations, evidence and fine processing.",
+    "ML Detection": "Computer vision detections and model confidence monitoring.",
+    "Illegal Parking AI": "Live illegal parking cases detected by roadside cameras.",
+    "Daily Reports": "Generated operational reports and performance summaries.",
+    "Road Intelligence": "Predictive congestion, incident and capacity intelligence."
+  };
+  return <section><div className="general-heading"><p>INTELLIGENT TRAFFIC OPERATIONS</p><h1>{title}</h1><span>{descriptions[title]}</span></div><div className="metric-row"><Metric icon={<Activity />} label="NETWORK STATUS" value="Online" tone="green" /><Metric icon={<Camera />} label="CONNECTED CAMERAS" value="24" tone="blue" /><Metric icon={<CircleAlert />} label="OPEN INCIDENTS" value="8" tone="orange" /><Metric icon={<CheckCircle2 />} label="SYSTEM HEALTH" value="98%" tone="purple" /></div><article className="general-card"><div><Crosshair /><h2>{title} overview</h2><p>Operational data is synchronized across the connected traffic network.</p></div><button>Refresh feed <Activity size={14} /></button></article></section>;
+}
+
 function Dashboard({ user, onLogout }) {
   const [mobileNav, setMobileNav] = useState(false);
-  const stats = [
-    { label: "Active cameras", value: "24", change: "+3 today", icon: <Eye /> },
-    { label: "Violations detected", value: "1,284", change: "+18.4%", icon: <TrafficCone /> },
-    { label: "Resolution rate", value: "94.8%", change: "+2.1%", icon: <CheckCircle2 /> },
-    { label: "Live alerts", value: "08", change: "Needs attention", icon: <Bell /> }
+  const [active, setActive] = useState("Traffic Monitoring");
+  const navSections = [
+    { label: "", items: [["SENTINEL-X Command Center", ShieldCheck], ["Connected Vehicle Safety", Radio], ["Gujarat Traffic Map", MapPin]] },
+    { label: "OPERATIONS", items: [["AI Agent Center", Bot], ["Traffic Monitoring", Camera], ["Parking Management", ParkingCircle], ["Violations", ClipboardList], ["ML Detection", Crosshair], ["Illegal Parking AI", ParkingCircle], ["Encroachment Monitor", Building2], ["Emergency", Siren]] },
+    { label: "INTELLIGENCE", items: [["Analytics", TrendingUp], ["Daily Reports", ClipboardList], ["Road Intelligence", Gauge]] }
   ];
-  return <div className="dashboard">
-    <header className="dashboard-header">
-      <div className="dashboard-brand"><div className="signal small"><i /><i /><i /></div><div><strong>Intelligent Traffic</strong><small>Violation detection system</small></div></div>
-      <button className="mobile-menu" onClick={() => setMobileNav(!mobileNav)}>{mobileNav ? <X /> : <Menu />}</button>
-      <nav className={mobileNav ? "open" : ""}><a className="selected">Overview</a><a>Live map</a><a>Violations</a><a>Reports</a></nav>
-      <div className="user-menu"><div className="avatar">{(user?.name || "A").charAt(0).toUpperCase()}</div><span>{user?.name || "Operator"}<small>{user?.role || "Admin"}</small></span><button onClick={onLogout}>Sign out</button></div>
-    </header>
-    <main className="dashboard-main">
-      <div className="dashboard-intro"><div><p className="eyebrow">MONDAY, NOVEMBER 16, 2026</p><h1>Good morning, {user?.name?.split(" ")[0] || "Operator"}.</h1><p>Here’s what’s happening across your traffic network today.</p></div><button className="outline-button"><MapPin size={16} /> View live map</button></div>
-      <div className="stats-grid">{stats.map((stat) => <div className="stat-card" key={stat.label}><div className="stat-top"><span className="stat-icon">{stat.icon}</span><span className={stat.label === "Live alerts" ? "warning-text" : "positive-text"}>{stat.change}</span></div><strong>{stat.value}</strong><span>{stat.label}</span></div>)}</div>
-      <div className="dashboard-grid"><section className="activity-card"><div className="section-heading"><div><p className="eyebrow">NETWORK PULSE</p><h2>Detection activity</h2></div><select><option>Last 7 days</option><option>Last 30 days</option></select></div><div className="chart"><div className="chart-grid"><span>400</span><span>300</span><span>200</span><span>100</span><span>0</span></div><div className="bars">{[38, 54, 46, 70, 61, 82, 91].map((height, index) => <div className="bar-col" key={index}><div className="bar" style={{ height: `${height}%` }} /><small>{["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][index]}</small></div>)}</div></div></section><section className="alerts-card"><div className="section-heading"><div><p className="eyebrow">ATTENTION REQUIRED</p><h2>Recent alerts</h2></div><button className="text-button">View all</button></div>{["Signal violation · Junction 04", "Speed limit · Ring Road", "No helmet · Central Avenue"].map((item, index) => <div className="alert-row" key={item}><span className={`alert-indicator level-${index + 1}`} /><div><strong>{item}</strong><small>{index + 2} minutes ago · Camera {String(index + 12).padStart(2, "0")}</small></div><ArrowRight size={16} /></div>)}</section></div>
-    </main>
+  const corridors = [["S.G. Highway - Thaltej","969","MEDIUM"],["Infocity Circle","733","MEDIUM"],["Alkapuri, Vadodara","857","MEDIUM"],["Athwa Gate, Surat","1073","HIGH"],["Varchha Road, Surat","607","MEDIUM"],["Kalawad Road, Rajkot","967","MEDIUM"],["Ghogha Circle, Bhavnagar","563","LOW"],["Bedi Road, Jamnagar","1169","HIGH"]];
+
+  return <div className="command-shell">
+    <aside className={`command-sidebar ${mobileNav ? "open" : ""}`}>
+      <div className="command-brand"><div className="command-logo"><Bot size={21} /></div><div><strong>UrbanSaathi</strong><small>VISION &amp; TRAFFIC CONTROL</small></div></div>
+      <nav className="command-nav">{navSections.map((section, index) => <div className="nav-section" key={index}>{section.label && <span>{section.label}</span>}{section.items.map(([label, Icon]) => <button key={label} className={active === label ? "active" : ""} onClick={() => { setActive(label); setMobileNav(false); }}><Icon size={16} /><span>{label}</span></button>)}</div>)}</nav>
+      <div className="sidebar-status"><span className="status-dot" /> AI systems operational</div>
+    </aside>
+    <div className="command-main">
+      <header className="command-header">
+        <button className="mobile-menu command-mobile" onClick={() => setMobileNav(!mobileNav)}>{mobileNav ? <X /> : <Menu />}</button>
+        <div className="live-room"><span className="status-dot" /> LIVE CONTROL ROOM <small>Gujarat Grid Active</small></div>
+        <div className="header-actions"><button className="edge-pill"><Radio size={14} /> Mobile OBU / Edge</button><div className="header-user"><div className="header-avatar">{(user?.name || "A").charAt(0).toUpperCase()}</div><span><strong>{user?.name || "Admin"}</strong><small>{user?.role || "Master Controller"}</small></span></div><button className="logout-button" onClick={onLogout}><LogOut size={14} /> Logout</button></div>
+      </header>
+      <main className="command-content">
+        {active === "Traffic Monitoring" && <>
+          <div className="monitor-grid"><section className="live-feed"><div className="camera-top"><span><span className="live-dot" /> S.G. HIGHWAY - THALTEJ, AHMEDABAD</span><time>15/09/2026 17:37:33</time></div><div className="feed-visual"><div className="feed-overlay" /><div className="ai-badge"><Bot size={15} /><span><strong>AUTONOMOUS INSIGHT</strong><small>Optimal balance across 12 junctions</small></span></div><span className="camera-badge"><Camera size={13} /> CAM-GJ-001</span><span className="fps-badge">30 FPS · HD</span><div className="signal-countdown"><span>SIGNAL COUNTDOWN</span><strong>0:38</strong></div></div></section>
+          <div className="monitor-side"><div className="telemetry-card"><div><p>LIVE FLOW RATE</p><strong>969 <small>vehicles</small></strong><span>Real-time corridor volume</span></div><div><p>SATURATION LEVEL</p><span className="medium-pill">MEDIUM</span></div></div><div className="signal-card"><div className="signal-card-title"><span><Signal size={17} /> <strong>Adaptive Signal Matrix</strong></span><div><button className="active">Auto AI</button><button>Manual</button></div></div><div className="timer-row"><div className="timer-light"><i /><i /><i /></div><div><p>CURRENT ACTIVE TIMER</p><strong>0:38</strong><span> sec remaining</span></div></div><div className="ai-active"><Bot size={14} /> SITA Neural Signal Optimizer Active</div></div></div></div>
+          <div className="corridor-heading"><strong>GUJARAT GRID CORRIDORS (12)</strong><span>Click any corridor to switch live feed</span></div><div className="corridor-grid">{corridors.map(([name,density,level],index) => <button className={`corridor-card ${index === 0 ? "selected" : ""}`} key={name}><span className="corridor-title"><strong>{name}</strong><em className={`level-${level.toLowerCase()}`}>{level}</em></span><small>ID: CAM-GJ-{String(index + 1).padStart(3,"0")}</small><span className="density">DENSITY<strong>{density}</strong></span><span className="density-bars"><i/><i/><i/><i/></span><span className="map-link">Map <ArrowRight size={11}/></span></button>)}</div>
+        </>}
+        {active === "AI Agent Center" && <AgentCenter />}
+        {active === "Encroachment Monitor" && <EncroachmentView />}
+        {active === "Emergency" && <EmergencyView />}
+        {active === "Analytics" && <AnalyticsView />}
+        {!["Traffic Monitoring","AI Agent Center","Encroachment Monitor","Emergency","Analytics"].includes(active) && <GeneralView title={active} />}
+      </main>
+    </div>
   </div>;
 }
 

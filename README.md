@@ -18,4 +18,14 @@ The client runs at `http://localhost:5173`. Demo access is `demo@traffic.ai` / `
 
 ## Docker and Jenkins
 
-`docker compose up --build` starts the API/client container on port 5000 and MongoDB with a persistent volume. Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `SESSION_SECRET` in the Jenkins job or deployment environment. The `Jenkinsfile` installs dependencies, runs tests, builds the client, builds the Docker image, and deploys with Docker Compose. The Jenkins agent must have Docker and the Docker Compose plugin available.
+`docker compose up --build` starts the API/client container on port 5000 and MongoDB with a persistent volume.
+
+In Jenkins, open **Manage Jenkins → Credentials → System → Global credentials** and add these three **Secret text** credentials:
+
+| Credential ID | Secret value |
+|---|---|
+| `traffic-google-client-id` | OAuth 2.0 Web application client ID |
+| `traffic-google-client-secret` | OAuth 2.0 Web application client secret |
+| `traffic-session-secret` | A long random session-signing secret |
+
+The Google OAuth client must authorize `http://localhost:5000` and `http://localhost:5000/auth/google/callback`. The Jenkins agent must have Docker and the Docker Compose plugin available.
