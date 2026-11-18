@@ -22,7 +22,7 @@ services:
       MONGODB_URI: mongodb://mongodb:27017/capstoneII-traffic
       CLIENT_URL: ${CLIENT_URL:-http://localhost:5000}
       SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-688406998561-0os5tl6e60qh2bmlk2ke039a8eb560ri.apps.googleusercontent.com}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL:-http://localhost:5000/auth/google/callback}
     depends_on:

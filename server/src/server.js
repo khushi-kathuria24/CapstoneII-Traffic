@@ -112,7 +112,9 @@ app.post("/api/auth/demo", async (req, res) => {
     res.status(500).json({ message: "Unable to start the demo session." });
   }
 });
-app.get("/auth/google", (req, res, next) => process.env.GOOGLE_CLIENT_ID ? passport.authenticate("google", { scope: ["profile", "email"] })(req, res, next) : res.status(503).send("Google OAuth is not configured. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to the server environment."));
+app.get("/auth/google", (req, res, next) => process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+  ? passport.authenticate("google", { scope: ["profile", "email"] })(req, res, next)
+  : res.status(503).send("Google OAuth is not configured. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to the server environment."));
 app.get("/auth/google/callback", passport.authenticate("google", { failureRedirect: `${clientUrl}?authError=google` }), (_req, res) => res.redirect(clientUrl));
 app.get("/api/auth/me", requireAuth, (req, res) => res.json({ user: publicUser(req.user) }));
 app.post("/api/auth/logout", (req, res) => req.logout((error) => error ? res.status(500).json({ message: "Unable to sign out." }) : req.session.destroy(() => res.json({ message: "Signed out." }))));
