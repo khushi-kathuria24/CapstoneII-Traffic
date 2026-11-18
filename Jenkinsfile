@@ -20,6 +20,7 @@ pipeline {
     IMAGE_NAME = 'intelligent-traffic-violation-system'
     CLIENT_URL = 'http://localhost:5000'
     GOOGLE_CALLBACK_URL = 'http://localhost:5000/auth/google/callback'
+    SESSION_SECRET = 'jenkins-local-session-secret-change-before-production'
   }
   stages {
     stage('Checkout') { steps { checkout scm } }
@@ -44,8 +45,7 @@ pipeline {
       steps {
         withCredentials([
           string(credentialsId: 'traffic-google-client-id', variable: 'GOOGLE_CLIENT_ID'),
-          string(credentialsId: 'traffic-google-client-secret', variable: 'GOOGLE_CLIENT_SECRET'),
-          string(credentialsId: 'traffic-session-secret', variable: 'SESSION_SECRET')
+          string(credentialsId: 'traffic-google-client-secret', variable: 'GOOGLE_CLIENT_SECRET')
         ]) {
           script {
             runCommand('docker compose down', true)
