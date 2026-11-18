@@ -184,7 +184,7 @@ function AnalyticsView() {
 
 function GeneralView({ title }) {
   const descriptions = {
-    "SENTINEL-X Command Center": "Unified city traffic command and incident response.",
+    "Command Center": "Unified city traffic command and incident response.",
     "Connected Vehicle Safety": "Connected vehicles, edge devices and roadside unit telemetry.",
     "Gujarat Traffic Map": "Live route congestion and intersection status across Gujarat.",
     "Parking Management": "Real-time occupancy and enforcement across city parking zones.",
@@ -200,16 +200,50 @@ function GeneralView({ title }) {
 function Dashboard({ user, onLogout }) {
   const [mobileNav, setMobileNav] = useState(false);
   const [active, setActive] = useState("Traffic Monitoring");
+  const [selectedCorridor, setSelectedCorridor] = useState(0);
+  const [signalMode, setSignalMode] = useState("auto");
+  const [activeSignal, setActiveSignal] = useState("green");
+  const [timer, setTimer] = useState(38);
+
   const navSections = [
-    { label: "", items: [["SENTINEL-X Command Center", ShieldCheck], ["Connected Vehicle Safety", Radio], ["Gujarat Traffic Map", MapPin]] },
+    { label: "", items: [["Command Center", ShieldCheck], ["Connected Vehicle Safety", Radio], ["Gujarat Traffic Map", MapPin]] },
     { label: "OPERATIONS", items: [["AI Agent Center", Bot], ["Traffic Monitoring", Camera], ["Parking Management", ParkingCircle], ["Violations", ClipboardList], ["ML Detection", Crosshair], ["Illegal Parking AI", ParkingCircle], ["Encroachment Monitor", Building2], ["Emergency", Siren]] },
     { label: "INTELLIGENCE", items: [["Analytics", TrendingUp], ["Daily Reports", ClipboardList], ["Road Intelligence", Gauge]] }
   ];
-  const corridors = [["S.G. Highway - Thaltej","969","MEDIUM"],["Infocity Circle","733","MEDIUM"],["Alkapuri, Vadodara","857","MEDIUM"],["Athwa Gate, Surat","1073","HIGH"],["Varchha Road, Surat","607","MEDIUM"],["Kalawad Road, Rajkot","967","MEDIUM"],["Ghogha Circle, Bhavnagar","563","LOW"],["Bedi Road, Jamnagar","1169","HIGH"]];
+  const corridors = [
+    ["S.G. Highway - Thaltej","969","MEDIUM","/videos/traffic-feed-1.mp4"],
+    ["Infocity Circle","733","MEDIUM","/videos/traffic-feed-2.mp4"],
+    ["Alkapuri, Vadodara","857","MEDIUM","/videos/traffic-feed-3.mp4"],
+    ["Athwa Gate, Surat","1073","HIGH","/videos/traffic-feed-4.mp4"],
+    ["Varchha Road, Surat","607","MEDIUM","/videos/traffic-feed-5.mp4"],
+    ["Kalawad Road, Rajkot","967","MEDIUM","/videos/traffic-feed-6.mp4"],
+    ["Ghogha Circle, Bhavnagar","563","LOW","/videos/traffic-feed-7.mp4"],
+    ["Bedi Road, Jamnagar","1169","HIGH","/videos/traffic-feed-8.mp4"]
+  ];
+  const currentCorridor = corridors[selectedCorridor];
+
+  useEffect(() => {
+    if (active !== "Traffic Monitoring") return undefined;
+    const interval = window.setInterval(() => {
+      setTimer((current) => {
+        if (signalMode === "manual") return current;
+        if (current > 1) return current - 1;
+        setActiveSignal((signal) => signal === "green" ? "yellow" : signal === "yellow" ? "red" : "green");
+        return 38;
+      });
+    }, 1000);
+    return () => window.clearInterval(interval);
+  }, [active, signalMode]);
+
+  const setManualSignal = (signal) => {
+    setSignalMode("manual");
+    setActiveSignal(signal);
+    setTimer(38);
+  };
 
   return <div className="command-shell">
     <aside className={`command-sidebar ${mobileNav ? "open" : ""}`}>
-      <div className="command-brand"><div className="command-logo"><Bot size={21} /></div><div><strong>UrbanSaathi</strong><small>VISION &amp; TRAFFIC CONTROL</small></div></div>
+      <div className="command-brand"><div className="command-logo"><Bot size={21} /></div><div><strong>TrafficNexus</strong><small>VISION &amp; TRAFFIC CONTROL</small></div></div>
       <nav className="command-nav">{navSections.map((section, index) => <div className="nav-section" key={index}>{section.label && <span>{section.label}</span>}{section.items.map(([label, Icon]) => <button key={label} className={active === label ? "active" : ""} onClick={() => { setActive(label); setMobileNav(false); }}><Icon size={16} /><span>{label}</span></button>)}</div>)}</nav>
       <div className="sidebar-status"><span className="status-dot" /> AI systems operational</div>
     </aside>
@@ -221,9 +255,38 @@ function Dashboard({ user, onLogout }) {
       </header>
       <main className="command-content">
         {active === "Traffic Monitoring" && <>
-          <div className="monitor-grid"><section className="live-feed"><div className="camera-top"><span><span className="live-dot" /> S.G. HIGHWAY - THALTEJ, AHMEDABAD</span><time>15/09/2026 17:37:33</time></div><div className="feed-visual"><div className="feed-overlay" /><div className="ai-badge"><Bot size={15} /><span><strong>AUTONOMOUS INSIGHT</strong><small>Optimal balance across 12 junctions</small></span></div><span className="camera-badge"><Camera size={13} /> CAM-GJ-001</span><span className="fps-badge">30 FPS · HD</span><div className="signal-countdown"><span>SIGNAL COUNTDOWN</span><strong>0:38</strong></div></div></section>
-          <div className="monitor-side"><div className="telemetry-card"><div><p>LIVE FLOW RATE</p><strong>969 <small>vehicles</small></strong><span>Real-time corridor volume</span></div><div><p>SATURATION LEVEL</p><span className="medium-pill">MEDIUM</span></div></div><div className="signal-card"><div className="signal-card-title"><span><Signal size={17} /> <strong>Adaptive Signal Matrix</strong></span><div><button className="active">Auto AI</button><button>Manual</button></div></div><div className="timer-row"><div className="timer-light"><i /><i /><i /></div><div><p>CURRENT ACTIVE TIMER</p><strong>0:38</strong><span> sec remaining</span></div></div><div className="ai-active"><Bot size={14} /> SITA Neural Signal Optimizer Active</div></div></div></div>
-          <div className="corridor-heading"><strong>GUJARAT GRID CORRIDORS (12)</strong><span>Click any corridor to switch live feed</span></div><div className="corridor-grid">{corridors.map(([name,density,level],index) => <button className={`corridor-card ${index === 0 ? "selected" : ""}`} key={name}><span className="corridor-title"><strong>{name}</strong><em className={`level-${level.toLowerCase()}`}>{level}</em></span><small>ID: CAM-GJ-{String(index + 1).padStart(3,"0")}</small><span className="density">DENSITY<strong>{density}</strong></span><span className="density-bars"><i/><i/><i/><i/></span><span className="map-link">Map <ArrowRight size={11}/></span></button>)}</div>
+          <div className="monitor-grid">
+            <section className="live-feed">
+              <div className="camera-top"><span><span className="live-dot" /> {currentCorridor[0].toUpperCase()}</span><time>{new Date().toLocaleString("en-GB")}</time></div>
+              <div className="feed-visual">
+                <video key={currentCorridor[3]} className="traffic-video" autoPlay loop muted playsInline controls={false} poster="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=1200&q=85">
+                  <source src={currentCorridor[3]} type="video/mp4" />
+                </video>
+                <div className="feed-overlay" />
+                <div className="ai-badge"><Bot size={15} /><span><strong>AUTONOMOUS INSIGHT</strong><small>Optimal balance across 12 junctions</small></span></div>
+                <span className="camera-badge"><Camera size={13} /> CAM-GJ-{String(selectedCorridor + 1).padStart(3, "0")}</span>
+                <span className="fps-badge">30 FPS · HD</span>
+                <div className={`signal-countdown ${activeSignal}`}><span>SIGNAL COUNTDOWN</span><strong>0:{String(timer).padStart(2, "0")}</strong></div>
+              </div>
+            </section>
+            <div className="monitor-side">
+              <div className="telemetry-card"><div><p>LIVE FLOW RATE</p><strong>{currentCorridor[1]} <small>vehicles</small></strong><span>Real-time corridor volume</span></div><div><p>SATURATION LEVEL</p><span className="medium-pill">{currentCorridor[2]}</span></div></div>
+              <div className="signal-card">
+                <div className="signal-card-title"><span><Signal size={17} /> <strong>Adaptive Signal Matrix</strong></span><div><button className={signalMode === "auto" ? "active" : ""} onClick={() => { setSignalMode("auto"); setTimer(38); }}>Auto AI</button><button className={signalMode === "manual" ? "active" : ""} onClick={() => setSignalMode("manual")}>Manual</button></div></div>
+                <div className="timer-row">
+                  <div className="timer-light" aria-label="Traffic signal controls">
+                    <button aria-label="Red light" className={activeSignal === "red" ? "active red" : ""} onClick={() => setManualSignal("red")} />
+                    <button aria-label="Yellow light" className={activeSignal === "yellow" ? "active yellow" : ""} onClick={() => setManualSignal("yellow")} />
+                    <button aria-label="Green light" className={activeSignal === "green" ? "active green" : ""} onClick={() => setManualSignal("green")} />
+                  </div>
+                  <div><p>CURRENT ACTIVE TIMER</p><strong>0:{String(timer).padStart(2, "0")}</strong><span> sec remaining</span></div>
+                </div>
+                <div className="ai-active"><Bot size={14} /> {signalMode === "auto" ? "SITA Neural Signal Optimizer Active" : `${activeSignal.toUpperCase()} Signal Controlled Manually`}</div>
+              </div>
+            </div>
+          </div>
+          <div className="corridor-heading"><strong>GUJARAT GRID CORRIDORS (12)</strong><span>Click any corridor to switch live feed</span></div>
+          <div className="corridor-grid">{corridors.map(([name,density,level],index) => <button className={`corridor-card ${index === selectedCorridor ? "selected" : ""}`} key={name} onClick={() => { setSelectedCorridor(index); setTimer(38); }}><span className="corridor-title"><strong>{name}</strong><em className={`level-${level.toLowerCase()}`}>{level}</em></span><small>ID: CAM-GJ-{String(index + 1).padStart(3,"0")}</small><span className="density">DENSITY<strong>{density}</strong></span><span className="density-bars"><i/><i/><i/><i/></span><span className="map-link">Map <ArrowRight size={11}/></span></button>)}</div>
         </>}
         {active === "AI Agent Center" && <AgentCenter />}
         {active === "Encroachment Monitor" && <EncroachmentView />}

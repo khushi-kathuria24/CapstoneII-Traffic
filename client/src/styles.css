@@ -31,7 +31,17 @@ form { display: grid; gap: 17px; }label { color: #183052; font-size: 11px; font-
 @media (max-width: 1000px) { .auth-shell { padding: 20px; }.brand-panel { padding: 30px; }.form-panel { padding: 30px; }.stats-grid { grid-template-columns: repeat(2, 1fr); }.dashboard-header { padding: 0 3vw; gap: 25px; } }
 @media (max-width: 700px) { .auth-shell { display: block; padding: 0; }.brand-panel { min-height: 340px; border-radius: 0; padding: 26px; }.brand-copy { margin: 45px 0 32px; }.brand-copy h1 { font-size: 34px; }.lead { font-size: 12px; margin-top: 12px; }.feature-list { grid-template-columns: 1fr; gap: 10px; }.panel-footer { display: none; }.form-panel { min-height: 620px; border-radius: 0; padding: 24px; }.form-content { margin-top: 16px; }.dashboard-header { padding: 0 20px; }.dashboard-header nav { display: none; position: absolute; top: 72px; left: 0; right: 0; height: auto; padding: 15px 25px; background: white; z-index: 3; box-shadow: 0 8px 15px #173a6a17; }.dashboard-header nav.open { display: grid; }.dashboard-header nav a { height: 35px; border: 0; }.mobile-menu { display: block; }.user-menu span, .user-menu button { display: none; }.dashboard-main { padding: 35px 18px; }.dashboard-intro { align-items: start; flex-direction: column; gap: 20px; }.dashboard-intro h1 { font-size: 27px; }.stats-grid, .dashboard-grid { grid-template-columns: 1fr; }.activity-card { overflow: hidden; } }
 
-/* UrbanSaathi command dashboard */
+/* TrafficNexus command dashboard */
+.traffic-video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; background:#111827; }
+.feed-overlay { pointer-events:none; z-index:1; }
+.ai-badge,.camera-badge,.fps-badge,.signal-countdown { z-index:3; }
+.signal-countdown.green { background:#1f6b49dc; }
+.signal-countdown.yellow { background:#9a731bdc; }
+.signal-countdown.red { background:#601d23dc; }
+.timer-light button { width:16px; height:16px; border:0; border-radius:50%; padding:0; background:#2b3650; cursor:pointer; box-shadow:none; }
+.timer-light button.active.red { background:#ef5b63; box-shadow:0 0 12px #ef5b63; }
+.timer-light button.active.yellow { background:#ffca63; box-shadow:0 0 12px #ffca63; }
+.timer-light button.active.green { background:#49ca92; box-shadow:0 0 12px #49ca92; }
 .command-shell { min-height: 100vh; display: grid; grid-template-columns: 220px minmax(0, 1fr); background: #edf2f9; color: #1a2a45; }
 .command-sidebar { position: relative; z-index: 20; height: 100vh; position: sticky; top: 0; display: flex; flex-direction: column; background: #fff; border-right: 1px solid #e2e8f2; }
 .command-brand { height: 74px; padding: 17px 18px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #edf1f7; }
