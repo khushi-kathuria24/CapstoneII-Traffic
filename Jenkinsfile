@@ -48,7 +48,8 @@ pipeline {
           string(credentialsId: 'traffic-google-client-secret', variable: 'GOOGLE_CLIENT_SECRET')
         ]) {
           script {
-            runCommand('docker compose down', true)
+            runCommand('docker rm -f capstoneii-traffic-app-1 traffic-violation-app-1', true)
+            runCommand('docker compose -p traffic-violation down', true)
             runCommand('docker compose up -d')
           }
         }
