@@ -211,14 +211,14 @@ function Dashboard({ user, onLogout }) {
     { label: "INTELLIGENCE", items: [["Analytics", TrendingUp], ["Daily Reports", ClipboardList], ["Road Intelligence", Gauge]] }
   ];
   const corridors = [
-    ["S.G. Highway - Thaltej","969","MEDIUM","/videos/traffic-feed-1.mp4"],
-    ["Infocity Circle","733","MEDIUM","/videos/traffic-feed-2.mp4"],
-    ["Alkapuri, Vadodara","857","MEDIUM","/videos/traffic-feed-3.mp4"],
-    ["Athwa Gate, Surat","1073","HIGH","/videos/traffic-feed-4.mp4"],
-    ["Varchha Road, Surat","607","MEDIUM","/videos/traffic-feed-5.mp4"],
-    ["Kalawad Road, Rajkot","967","MEDIUM","/videos/traffic-feed-6.mp4"],
-    ["Ghogha Circle, Bhavnagar","563","LOW","/videos/traffic-feed-7.mp4"],
-    ["Bedi Road, Jamnagar","1169","HIGH","/videos/traffic-feed-8.mp4"]
+    ["S.G. Highway - Thaltej","969","MEDIUM","/videos/video_2.mp4"],
+    ["Infocity Circle","733","MEDIUM","/videos/video_3.mp4"],
+    ["Alkapuri, Vadodara","857","MEDIUM","/videos/video_4.mp4"],
+    ["Athwa Gate, Surat","1073","HIGH","/videos/Hikvision_Traffic_Flow_Analysis_Camera_240P.mp4"],
+    ["Varchha Road, Surat","607","MEDIUM","/videos/Vehicle%20Detection%20and%20Traffic%20Counting%20using%20AI..mp4"],
+    ["Kalawad Road, Rajkot","967","MEDIUM","/videos/video_2.mp4"],
+    ["Ghogha Circle, Bhavnagar","563","LOW","/videos/video_3.mp4"],
+    ["Bedi Road, Jamnagar","1169","HIGH","/videos/video_4.mp4"]
   ];
   const currentCorridor = corridors[selectedCorridor];
 
