@@ -226,14 +226,22 @@ function Dashboard({ user, onLogout }) {
     if (active !== "Traffic Monitoring") return undefined;
     const interval = window.setInterval(() => {
       setTimer((current) => {
-        if (signalMode === "manual") return current;
         if (current > 1) return current - 1;
-        setActiveSignal((signal) => signal === "green" ? "yellow" : signal === "yellow" ? "red" : "green");
+        if (signalMode === "manual") return 38;
+        if (activeSignal === "green") {
+          setActiveSignal("yellow");
+          return 5;
+        }
+        if (activeSignal === "yellow") {
+          setActiveSignal("red");
+          return 38;
+        }
+        setActiveSignal("green");
         return 38;
       });
     }, 1000);
     return () => window.clearInterval(interval);
-  }, [active, signalMode]);
+  }, [active, signalMode, activeSignal]);
 
   const setManualSignal = (signal) => {
     setSignalMode("manual");
@@ -259,7 +267,7 @@ function Dashboard({ user, onLogout }) {
             <section className="live-feed">
               <div className="camera-top"><span><span className="live-dot" /> {currentCorridor[0].toUpperCase()}</span><time>{new Date().toLocaleString("en-GB")}</time></div>
               <div className="feed-visual">
-                <video key={currentCorridor[3]} className="traffic-video" autoPlay loop muted playsInline controls={false} poster="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=1200&q=85">
+                <video key={currentCorridor[3]} className="traffic-video" autoPlay loop muted playsInline preload="auto" onLoadedData={(event) => event.currentTarget.play()}>
                   <source src={currentCorridor[3]} type="video/mp4" />
                 </video>
                 <div className="feed-overlay" />
@@ -272,12 +280,12 @@ function Dashboard({ user, onLogout }) {
             <div className="monitor-side">
               <div className="telemetry-card"><div><p>LIVE FLOW RATE</p><strong>{currentCorridor[1]} <small>vehicles</small></strong><span>Real-time corridor volume</span></div><div><p>SATURATION LEVEL</p><span className="medium-pill">{currentCorridor[2]}</span></div></div>
               <div className="signal-card">
-                <div className="signal-card-title"><span><Signal size={17} /> <strong>Adaptive Signal Matrix</strong></span><div><button className={signalMode === "auto" ? "active" : ""} onClick={() => { setSignalMode("auto"); setTimer(38); }}>Auto AI</button><button className={signalMode === "manual" ? "active" : ""} onClick={() => setSignalMode("manual")}>Manual</button></div></div>
+                <div className="signal-card-title"><span><Signal size={17} /> <strong>Adaptive Signal Matrix</strong></span><div><button className={signalMode === "auto" ? "active" : ""} onClick={() => { setSignalMode("auto"); setActiveSignal("green"); setTimer(38); }}>Auto AI</button><button className={signalMode === "manual" ? "active" : ""} onClick={() => setSignalMode("manual")}>Manual</button></div></div>
                 <div className="timer-row">
                   <div className="timer-light" aria-label="Traffic signal controls">
-                    <button aria-label="Red light" className={activeSignal === "red" ? "active red" : ""} onClick={() => setManualSignal("red")} />
-                    <button aria-label="Yellow light" className={activeSignal === "yellow" ? "active yellow" : ""} onClick={() => setManualSignal("yellow")} />
-                    <button aria-label="Green light" className={activeSignal === "green" ? "active green" : ""} onClick={() => setManualSignal("green")} />
+                    <button aria-label="Red light" disabled={signalMode === "auto"} className={activeSignal === "red" ? "active red" : ""} onClick={() => setManualSignal("red")} />
+                    <button aria-label="Yellow light" disabled={signalMode === "auto"} className={activeSignal === "yellow" ? "active yellow" : ""} onClick={() => setManualSignal("yellow")} />
+                    <button aria-label="Green light" disabled={signalMode === "auto"} className={activeSignal === "green" ? "active green" : ""} onClick={() => setManualSignal("green")} />
                   </div>
                   <div><p>CURRENT ACTIVE TIMER</p><strong>0:{String(timer).padStart(2, "0")}</strong><span> sec remaining</span></div>
                 </div>
