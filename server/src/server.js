@@ -12,7 +12,7 @@ import bcrypt from "bcryptjs";
 
 const app = express();
 const port = process.env.PORT || 5000;
-const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+const clientUrl = process.env.CLIENT_URL || "http://localhost:5000";
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
