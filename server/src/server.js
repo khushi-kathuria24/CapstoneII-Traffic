@@ -9,6 +9,7 @@ import mongoose from "mongoose";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import bcrypt from "bcryptjs";
+import swaggerUi from "swagger-ui-express";
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -64,6 +65,137 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 
 const publicUser = (user) => ({ id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar });
 const requireAuth = (req, res, next) => req.isAuthenticated() ? next() : res.status(401).json({ message: "Authentication required." });
+
+const openApiDocument = {
+  openapi: "3.0.3",
+  info: {
+    title: "Intelligent Traffic Violation Detection API",
+    version: "1.0.0",
+    description: "Authentication, session, health, and dashboard endpoints."
+  },
+  servers: [{ url: clientUrl }],
+  components: {
+    securitySchemes: {
+      sessionCookie: { type: "apiKey", in: "cookie", name: "connect.sid" }
+    },
+    schemas: {
+      User: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          name: { type: "string" },
+          email: { type: "string", format: "email" },
+          role: { type: "string", enum: ["admin", "operator"] },
+          avatar: { type: "string", nullable: true }
+        }
+      },
+      Error: {
+        type: "object",
+        properties: { message: { type: "string" } }
+      }
+    }
+  },
+  paths: {
+    "/api/health": {
+      get: {
+        tags: ["System"],
+        summary: "Check API health",
+        responses: {
+          "200": {
+            description: "API is healthy",
+            content: { "application/json": { schema: { type: "object", properties: { status: { type: "string" }, service: { type: "string" } } } } }
+          }
+        }
+      }
+    },
+    "/api/auth/signup": {
+      post: {
+        tags: ["Authentication"],
+        summary: "Create an account",
+        requestBody: {
+          required: true,
+          content: { "application/json": { schema: { type: "object", required: ["name", "email", "password"], properties: { name: { type: "string" }, email: { type: "string", format: "email" }, password: { type: "string", minLength: 6 } } } } }
+        },
+        responses: {
+          "201": { description: "Account created", content: { "application/json": { schema: { type: "object", properties: { user: { $ref: "#/components/schemas/User" } } } } } },
+          "400": { description: "Invalid request", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+          "409": { description: "Email already exists", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/auth/login": {
+      post: {
+        tags: ["Authentication"],
+        summary: "Sign in",
+        requestBody: {
+          required: true,
+          content: { "application/json": { schema: { type: "object", required: ["email", "password"], properties: { email: { type: "string", format: "email" }, password: { type: "string" } } } } }
+        },
+        responses: {
+          "200": { description: "Signed in", content: { "application/json": { schema: { type: "object", properties: { user: { $ref: "#/components/schemas/User" } } } } } },
+          "401": { description: "Invalid credentials", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/auth/demo": {
+      post: {
+        tags: ["Authentication"],
+        summary: "Start a demo session",
+        responses: {
+          "200": { description: "Demo session started", content: { "application/json": { schema: { type: "object", properties: { user: { $ref: "#/components/schemas/User" } } } } } },
+          "500": { description: "Demo session failed", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/auth/me": {
+      get: {
+        tags: ["Authentication"],
+        summary: "Get the current user",
+        security: [{ sessionCookie: [] }],
+        responses: {
+          "200": { description: "Current user", content: { "application/json": { schema: { type: "object", properties: { user: { $ref: "#/components/schemas/User" } } } } } },
+          "401": { description: "Not authenticated", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      post: {
+        tags: ["Authentication"],
+        summary: "Sign out",
+        security: [{ sessionCookie: [] }],
+        responses: {
+          "200": { description: "Signed out", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/dashboard": {
+      get: {
+        tags: ["Dashboard"],
+        summary: "Get dashboard data",
+        security: [{ sessionCookie: [] }],
+        responses: {
+          "200": { description: "Dashboard data", content: { "application/json": { schema: { type: "object", properties: { message: { type: "string" } } } } } },
+          "401": { description: "Not authenticated", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/auth/google": {
+      get: {
+        tags: ["Authentication"],
+        summary: "Start Google OAuth",
+        responses: {
+          "302": { description: "Redirects to Google" },
+          "503": { description: "Google OAuth is not configured" }
+        }
+      }
+    }
+  }
+};
+
+app.get("/api/openapi.json", (_req, res) => res.json(openApiDocument));
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(openApiDocument, {
+  customSiteTitle: "Traffic API Documentation"
+}));
 
 app.get("/api/health", (_req, res) => res.json({ status: "ok", service: "traffic-violation-api" }));
 app.post("/api/auth/signup", async (req, res) => {

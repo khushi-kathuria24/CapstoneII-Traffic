@@ -16,6 +16,21 @@ npm run dev
 
 The client runs at `http://localhost:5173`. Demo access is `demo@traffic.ai` / `Demo@123`.
 
+## API documentation
+
+Swagger UI is available at `http://localhost:5000/api/docs`.
+The OpenAPI 3 specification is available at `http://localhost:5000/api/openapi.json`.
+
+## Selenium browser test
+
+With Microsoft Edge and the complete application running, execute:
+
+```powershell
+npm run test:e2e
+```
+
+This opens Microsoft Edge in headless mode, signs in with the demo account, verifies the dashboard, and tests logout.
+
 ## Docker and Jenkins
 
 `docker compose up --build` starts the API/client container on port 5000 and MongoDB with a persistent volume.
