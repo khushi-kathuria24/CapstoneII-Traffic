@@ -1,0 +1,8 @@
+.git
+**/node_modules
+client/dist
+recordings
+tests
+server/ml/models
+.env
+**/.env

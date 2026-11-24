@@ -16,11 +16,11 @@ def runCommand(String command, boolean allowFailure = false) {
 
 pipeline {
   agent any
+  parameters {
+    string(name: 'APP_HOST_PORT', defaultValue: '5001', description: 'Unused host port for the TrafficNexus application.')
+  }
   environment {
     IMAGE_NAME = 'intelligent-traffic-violation-system'
-    CLIENT_URL = 'http://localhost:5000'
-    GOOGLE_CALLBACK_URL = 'http://localhost:5000/auth/google/callback'
-    SESSION_SECRET = 'jenkins-local-session-secret-change-before-production'
   }
   stages {
     stage('Checkout') { steps { checkout scm } }
@@ -43,14 +43,23 @@ pipeline {
     }
     stage('Deploy') {
       steps {
-        withCredentials([
-          string(credentialsId: 'traffic-google-client-id', variable: 'GOOGLE_CLIENT_ID'),
-          string(credentialsId: 'traffic-google-client-secret', variable: 'GOOGLE_CLIENT_SECRET')
-        ]) {
-          script {
-            runCommand('docker rm -f capstoneii-traffic-app-1 traffic-violation-app-1', true)
-            runCommand('docker compose -p traffic-violation down', true)
-            runCommand('docker compose up -d')
+        script {
+          def appHostPort = (params.APP_HOST_PORT ?: '5001').trim()
+          if (!(appHostPort ==~ /[0-9]{1,5}/) || appHostPort.toInteger() < 1024 || appHostPort.toInteger() > 65535) {
+            error('APP_HOST_PORT must be an unused port between 1024 and 65535.')
+          }
+          env.APP_HOST_PORT = appHostPort
+          env.CLIENT_URL = "http://localhost:${appHostPort}"
+          env.GOOGLE_CALLBACK_URL = "${env.CLIENT_URL}/auth/google/callback"
+          withCredentials([
+            string(credentialsId: 'traffic-google-client-id', variable: 'GOOGLE_CLIENT_ID'),
+            string(credentialsId: 'traffic-google-client-secret', variable: 'GOOGLE_CLIENT_SECRET'),
+            string(credentialsId: 'traffic-session-secret', variable: 'SESSION_SECRET')
+          ]) {
+            if (!env.SESSION_SECRET?.trim()) {
+              error('The traffic-session-secret Jenkins credential must not be empty.')
+            }
+            runCommand('docker compose -p traffic-violation up -d --wait --wait-timeout 120 --no-build')
           }
         }
       }

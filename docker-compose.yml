@@ -14,17 +14,23 @@ services:
     build: .
     restart: unless-stopped
     ports:
-      - "5000:5000"
+      - "${APP_HOST_PORT:-5001}:5000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5000/api/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
     environment:
       PORT: 5000
       NODE_ENV: production
       SECURE_COOKIES: "false"
       MONGODB_URI: mongodb://mongodb:27017/capstoneII-traffic
-      CLIENT_URL: ${CLIENT_URL:-http://localhost:5000}
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:5001}
       SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-688406998561-0os5tl6e60qh2bmlk2ke039a8eb560ri.apps.googleusercontent.com}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
-      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL:-http://localhost:5000/auth/google/callback}
+      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL:-http://localhost:5001/auth/google/callback}
     depends_on:
       mongodb:
         condition: service_healthy
