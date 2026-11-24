@@ -51,14 +51,19 @@ pipeline {
           env.APP_HOST_PORT = appHostPort
           env.CLIENT_URL = "http://localhost:${appHostPort}"
           env.GOOGLE_CALLBACK_URL = "${env.CLIENT_URL}/auth/google/callback"
+          def sessionSecretCommand = "node -e \"process.stdout.write(require('node:crypto').randomBytes(48).toString('hex'))\""
+          if (isUnix()) {
+            env.SESSION_SECRET = sh(script: sessionSecretCommand, returnStdout: true).trim()
+          } else {
+            env.SESSION_SECRET = bat(script: "@echo off\r\n${sessionSecretCommand}", returnStdout: true).trim()
+          }
+          if (!(env.SESSION_SECRET ==~ /[0-9a-f]{96}/)) {
+            error('Unable to generate a valid session secret.')
+          }
           withCredentials([
             string(credentialsId: 'traffic-google-client-id', variable: 'GOOGLE_CLIENT_ID'),
-            string(credentialsId: 'traffic-google-client-secret', variable: 'GOOGLE_CLIENT_SECRET'),
-            string(credentialsId: 'traffic-session-secret', variable: 'SESSION_SECRET')
+            string(credentialsId: 'traffic-google-client-secret', variable: 'GOOGLE_CLIENT_SECRET')
           ]) {
-            if (!env.SESSION_SECRET?.trim()) {
-              error('The traffic-session-secret Jenkins credential must not be empty.')
-            }
             runCommand('docker compose -p traffic-violation up -d --wait --wait-timeout 120 --no-build')
           }
         }

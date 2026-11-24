@@ -71,12 +71,11 @@ Without a Google Maps key, the Delhi map falls back to OpenStreetMap tiles. Cong
 
 `docker compose up --build` starts the API/client container at `http://localhost:5001` and MongoDB with a persistent volume. The host port defaults to 5001 so it does not conflict with the local Node API on port 5000; override it with `APP_HOST_PORT` if needed.
 
-In Jenkins, open **Manage Jenkins → Credentials → System → Global credentials** and add these three **Secret text** credentials:
+In Jenkins, open **Manage Jenkins → Credentials → System → Global credentials** and add these two **Secret text** credentials:
 
 | Credential ID | Secret value |
 |---|---|
 | `traffic-google-client-id` | OAuth 2.0 Web application client ID |
 | `traffic-google-client-secret` | OAuth 2.0 Web application client secret |
-| `traffic-session-secret` | A long random session-signing secret |
 
-The Jenkins pipeline deploys to `http://localhost:5001` by default; change the `APP_HOST_PORT` build parameter if that port is occupied. Add `http://localhost:5001` as an authorized origin and `http://localhost:5001/auth/google/callback` as an authorized redirect URI in Google OAuth (if you change the port parameter, update these URLs too; keep the port-5000 callback for local Node development). The Jenkins agent must have Docker and Docker Compose v2 available, plus the three credentials listed above. Deployment waits for the container's `/api/health` check and updates the app without stopping the persistent MongoDB service.
+The Jenkins pipeline generates a fresh 48-byte session-signing secret for each deployment, so no session-secret credential is required; users may need to sign in again after a deploy. It deploys to `http://localhost:5001` by default; change the `APP_HOST_PORT` build parameter if that port is occupied. Add `http://localhost:5001` as an authorized origin and `http://localhost:5001/auth/google/callback` as an authorized redirect URI in Google OAuth (if you change the port parameter, update these URLs too; keep the port-5000 callback for local Node development). The Jenkins agent must have Docker and Docker Compose v2 available, plus the two credentials listed above. Deployment waits for the container's `/api/health` check and updates the app without stopping the persistent MongoDB service.
