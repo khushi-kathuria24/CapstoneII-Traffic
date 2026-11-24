@@ -1,0 +1,12 @@
+*.pt
+*.pth
+*.onnx
+*.engine
+*.weights
+*.h5
+*.pb
+*.tflite
+*.safetensors
+*.keras
+*.joblib
+*.pkl

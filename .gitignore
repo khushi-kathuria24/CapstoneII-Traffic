@@ -1,5 +1,7 @@
 node_modules/
 client/dist/
+client/.env.local
+recordings/*.mp4
 server/.env
 .env
 .DS_Store

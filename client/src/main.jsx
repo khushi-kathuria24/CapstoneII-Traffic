@@ -31,7 +31,12 @@ import {
   UserRound,
   X
 } from "lucide-react";
+import CitizenPortal from "./CitizenPortal.jsx";
+import DelhiTrafficMap from "./DelhiTrafficMap.jsx";
+import AIAgentCenter from "./AIAgentCenter.jsx";
+import MLDetection from "./MLDetection.jsx";
 import "./styles.css";
+import "./ai-workspaces.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
@@ -52,11 +57,15 @@ function Feature({ icon, title, detail }) {
 }
 
 function Login({ onLogin }) {
-  const [mode, setMode] = useState("admin");
+  const [mode, setMode] = useState(() => sessionStorage.getItem("traffic-portal-mode") === "user" ? "user" : "admin");
   const [isSignup, setIsSignup] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [status, setStatus] = useState({ type: "", message: "" });
   const [loading, setLoading] = useState(false);
+  const selectMode = (nextMode) => {
+    setMode(nextMode);
+    sessionStorage.setItem("traffic-portal-mode", nextMode);
+  };
 
   const startDemo = async () => {
     setStatus({ type: "", message: "" });
@@ -68,7 +77,7 @@ function Login({ onLogin }) {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Unable to start demo.");
-      onLogin(data.user);
+      onLogin(data.user, mode);
     } catch (error) {
       setStatus({ type: "error", message: error.message });
     } finally {
@@ -93,7 +102,7 @@ function Login({ onLogin }) {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Unable to continue.");
-      onLogin(data.user);
+      onLogin(data.user, mode);
     } catch (error) {
       setStatus({ type: "error", message: error.message });
     } finally {
@@ -123,8 +132,8 @@ function Login({ onLogin }) {
 
       <section className="form-panel">
         <div className="portal-tabs">
-          <button className={mode === "admin" ? "active" : ""} onClick={() => setMode("admin")}>Admin portal</button>
-          <button className={mode === "user" ? "active" : ""} onClick={() => setMode("user")}>User portal</button>
+          <button className={mode === "admin" ? "active" : ""} onClick={() => selectMode("admin")}>Admin portal</button>
+          <button className={mode === "user" ? "active" : ""} onClick={() => selectMode("user")}>User portal</button>
         </div>
         <div className="form-content">
           <span className="welcome-badge">{isSignup ? "GET STARTED" : "WELCOME BACK"}</span>
@@ -153,17 +162,6 @@ function Metric({ icon, label, value, detail, tone = "blue" }) {
   return <div className={`metric-card tone-${tone}`}><span className="metric-icon">{icon}</span><div><small>{label}</small><strong>{value}</strong>{detail && <p>{detail}</p>}</div></div>;
 }
 
-function AgentCenter() {
-  const agents = [
-    ["SITA Signal Optimizer", "Signal timing and congestion balancing", "Active", "#5a78ed"],
-    ["Vision-Violation Agent", "Plate, helmet, seatbelt and lane detection", "Active", "#8b66d9"],
-    ["Guardian Encroachment Agent", "Restricted zone and vendor detection", "Monitoring", "#e59a40"],
-    ["Emergency Corridor Agent", "Priority green waves and route clearance", "Active", "#e95d65"],
-    ["Road Intelligence Agent", "Pattern and incident forecasting", "Learning", "#3ba78a"]
-  ];
-  return <section><div className="page-banner purple"><div><p>COORDINATED AI OPERATIONS</p><h1>AI Agent Center</h1><span>Autonomous traffic agents operating across the Gujarat network</span></div><span className="active-badge"><i /> 5 AGENTS ACTIVE</span></div><div className="agent-grid">{agents.map(([name, detail, status, color]) => <article className="agent-card" key={name}><div className="agent-icon" style={{ background: `${color}18`, color }}><Bot /></div><span className="agent-status">{status}</span><h2>{name}</h2><p>{detail}</p><div className="agent-health"><span>Confidence</span><strong>{status === "Learning" ? "86%" : "98%"}</strong></div><div className="agent-progress"><i style={{ width: status === "Learning" ? "86%" : "98%", background: color }} /></div><button>Open agent <ArrowRight size={14} /></button></article>)}</div></section>;
-}
-
 function EncroachmentView() {
   const cases = [
     ["HAWKER in restricted area", "Indiranagar", "HIGH", "Hawker detected in restricted-area"],
@@ -186,7 +184,7 @@ function GeneralView({ title }) {
   const descriptions = {
     "Command Center": "Unified city traffic command and incident response.",
     "Connected Vehicle Safety": "Connected vehicles, edge devices and roadside unit telemetry.",
-    "Gujarat Traffic Map": "Live route congestion and intersection status across Gujarat.",
+    "Traffic Map": "Delhi street map with sample congestion reports and monitored junctions.",
     "Parking Management": "Real-time occupancy and enforcement across city parking zones.",
     "Violations": "Detected traffic violations, evidence and fine processing.",
     "ML Detection": "Computer vision detections and model confidence monitoring.",
@@ -199,14 +197,14 @@ function GeneralView({ title }) {
 
 function Dashboard({ user, onLogout }) {
   const [mobileNav, setMobileNav] = useState(false);
-  const [active, setActive] = useState("Traffic Monitoring");
+  const [active, setActive] = useState("Traffic Map");
   const [selectedCorridor, setSelectedCorridor] = useState(0);
   const [signalMode, setSignalMode] = useState("auto");
   const [activeSignal, setActiveSignal] = useState("green");
   const [timer, setTimer] = useState(38);
 
   const navSections = [
-    { label: "", items: [["Command Center", ShieldCheck], ["Connected Vehicle Safety", Radio], ["Gujarat Traffic Map", MapPin]] },
+    { label: "", items: [["Command Center", ShieldCheck], ["Connected Vehicle Safety", Radio], ["Traffic Map", MapPin]] },
     { label: "OPERATIONS", items: [["AI Agent Center", Bot], ["Traffic Monitoring", Camera], ["Parking Management", ParkingCircle], ["Violations", ClipboardList], ["ML Detection", Crosshair], ["Illegal Parking AI", ParkingCircle], ["Encroachment Monitor", Building2], ["Emergency", Siren]] },
     { label: "INTELLIGENCE", items: [["Analytics", TrendingUp], ["Daily Reports", ClipboardList], ["Road Intelligence", Gauge]] }
   ];
@@ -258,10 +256,11 @@ function Dashboard({ user, onLogout }) {
     <div className="command-main">
       <header className="command-header">
         <button className="mobile-menu command-mobile" onClick={() => setMobileNav(!mobileNav)}>{mobileNav ? <X /> : <Menu />}</button>
-        <div className="live-room"><span className="status-dot" /> LIVE CONTROL ROOM <small>Gujarat Grid Active</small></div>
+        <div className="live-room"><span className="status-dot" /> LIVE CONTROL ROOM <small>Delhi Grid Active</small></div>
         <div className="header-actions"><button className="edge-pill"><Radio size={14} /> Mobile OBU / Edge</button><div className="header-user"><div className="header-avatar">{(user?.name || "A").charAt(0).toUpperCase()}</div><span><strong>{user?.name || "Admin"}</strong><small>{user?.role || "Master Controller"}</small></span></div><button className="logout-button" onClick={onLogout}><LogOut size={14} /> Logout</button></div>
       </header>
       <main className="command-content">
+        {active === "Traffic Map" && <DelhiTrafficMap />}
         {active === "Traffic Monitoring" && <>
           <div className="monitor-grid">
             <section className="live-feed">
@@ -296,11 +295,12 @@ function Dashboard({ user, onLogout }) {
           <div className="corridor-heading"><strong>GUJARAT GRID CORRIDORS (12)</strong><span>Click any corridor to switch live feed</span></div>
           <div className="corridor-grid">{corridors.map(([name,density,level],index) => <button className={`corridor-card ${index === selectedCorridor ? "selected" : ""}`} key={name} onClick={() => { setSelectedCorridor(index); setTimer(38); }}><span className="corridor-title"><strong>{name}</strong><em className={`level-${level.toLowerCase()}`}>{level}</em></span><small>ID: CAM-GJ-{String(index + 1).padStart(3,"0")}</small><span className="density">DENSITY<strong>{density}</strong></span><span className="density-bars"><i/><i/><i/><i/></span><span className="map-link">Map <ArrowRight size={11}/></span></button>)}</div>
         </>}
-        {active === "AI Agent Center" && <AgentCenter />}
+        {active === "AI Agent Center" && <AIAgentCenter />}
+        {active === "ML Detection" && <MLDetection />}
         {active === "Encroachment Monitor" && <EncroachmentView />}
         {active === "Emergency" && <EmergencyView />}
         {active === "Analytics" && <AnalyticsView />}
-        {!["Traffic Monitoring","AI Agent Center","Encroachment Monitor","Emergency","Analytics"].includes(active) && <GeneralView title={active} />}
+        {!["Traffic Map","Traffic Monitoring","AI Agent Center","ML Detection","Encroachment Monitor","Emergency","Analytics"].includes(active) && <GeneralView title={active} />}
       </main>
     </div>
   </div>;
@@ -308,11 +308,20 @@ function Dashboard({ user, onLogout }) {
 
 function App() {
   const [user, setUser] = useState(null);
+  const [portalMode, setPortalMode] = useState(() => sessionStorage.getItem("traffic-portal-mode") === "user" ? "user" : "admin");
   useEffect(() => {
     fetch(`${API_URL}/api/auth/me`, { credentials: "include" }).then((response) => response.ok ? response.json() : null).then((data) => data && setUser(data.user)).catch(() => {});
   }, []);
+  const login = (nextUser, mode) => {
+    setUser(nextUser);
+    setPortalMode(mode);
+    sessionStorage.setItem("traffic-portal-mode", mode);
+  };
   const logout = async () => { await fetch(`${API_URL}/api/auth/logout`, { method: "POST", credentials: "include" }); setUser(null); };
-  return user ? <Dashboard user={user} onLogout={logout} /> : <Login onLogin={setUser} />;
+  if (!user) return <Login onLogin={login} />;
+  return portalMode === "user"
+    ? <CitizenPortal user={user} onLogout={logout} />
+    : <Dashboard user={user} onLogout={logout} />;
 }
 
 createRoot(document.getElementById("root")).render(<React.StrictMode><App /></React.StrictMode>);
