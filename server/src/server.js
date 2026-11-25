@@ -1,7 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import cors from "cors";
 import session from "express-session";
 import MongoStore from "connect-mongo";
@@ -10,6 +10,7 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import bcrypt from "bcryptjs";
 import swaggerUi from "swagger-ui-express";
+import { accessTokenLifetimeSeconds, createAccessToken, verifyAccessToken } from "./authTokens.js";
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -64,7 +65,30 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 }
 
 const publicUser = (user) => ({ id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar });
-const requireAuth = (req, res, next) => req.isAuthenticated() ? next() : res.status(401).json({ message: "Authentication required." });
+const createAuthResponse = (user) => {
+  const profile = publicUser(user);
+  return {
+    user: profile,
+    accessToken: createAccessToken(profile),
+    tokenType: "Bearer",
+    expiresIn: accessTokenLifetimeSeconds
+  };
+};
+const requireAuth = (req, res, next) => {
+  if (req.isAuthenticated()) return next();
+  const bearerMatch = req.get("authorization")?.match(/^Bearer\s+(\S+)$/i);
+  if (!bearerMatch) return res.status(401).json({ message: "Authentication required." });
+  try {
+    const payload = verifyAccessToken(bearerMatch[1]);
+    if (!payload.user || payload.user.id !== payload.sub) {
+      return res.status(401).json({ message: "Invalid or expired bearer token." });
+    }
+    req.user = payload.user;
+    return next();
+  } catch {
+    return res.status(401).json({ message: "Invalid or expired bearer token." });
+  }
+};
 
 const openApiDocument = {
   openapi: "3.0.3",
@@ -76,7 +100,13 @@ const openApiDocument = {
   servers: [{ url: clientUrl }],
   components: {
     securitySchemes: {
-      sessionCookie: { type: "apiKey", in: "cookie", name: "connect.sid" }
+      sessionCookie: { type: "apiKey", in: "cookie", name: "connect.sid" },
+      bearerAuth: {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+        description: "Use the accessToken returned by signup, login, or demo login. Tokens expire after 15 minutes and cannot be revoked before expiry; logout clears the session cookie."
+      }
     },
     schemas: {
       User: {
@@ -92,6 +122,16 @@ const openApiDocument = {
       Error: {
         type: "object",
         properties: { message: { type: "string" } }
+      },
+      AuthResponse: {
+        type: "object",
+        required: ["user", "accessToken", "tokenType", "expiresIn"],
+        properties: {
+          user: { $ref: "#/components/schemas/User" },
+          accessToken: { type: "string" },
+          tokenType: { type: "string", enum: ["Bearer"] },
+          expiresIn: { type: "integer", description: "Token lifetime in seconds.", example: 900 }
+        }
       }
     }
   },
@@ -117,7 +157,7 @@ const openApiDocument = {
           content: { "application/json": { schema: { type: "object", required: ["name", "email", "password"], properties: { name: { type: "string" }, email: { type: "string", format: "email" }, password: { type: "string", minLength: 6 } } } } }
         },
         responses: {
-          "201": { description: "Account created", content: { "application/json": { schema: { type: "object", properties: { user: { $ref: "#/components/schemas/User" } } } } } },
+          "201": { description: "Account created", content: { "application/json": { schema: { $ref: "#/components/schemas/AuthResponse" } } } },
           "400": { description: "Invalid request", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
           "409": { description: "Email already exists", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
         }
@@ -132,7 +172,7 @@ const openApiDocument = {
           content: { "application/json": { schema: { type: "object", required: ["email", "password"], properties: { email: { type: "string", format: "email" }, password: { type: "string" } } } } }
         },
         responses: {
-          "200": { description: "Signed in", content: { "application/json": { schema: { type: "object", properties: { user: { $ref: "#/components/schemas/User" } } } } } },
+          "200": { description: "Signed in", content: { "application/json": { schema: { $ref: "#/components/schemas/AuthResponse" } } } },
           "401": { description: "Invalid credentials", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
         }
       }
@@ -142,7 +182,7 @@ const openApiDocument = {
         tags: ["Authentication"],
         summary: "Start a demo session",
         responses: {
-          "200": { description: "Demo session started", content: { "application/json": { schema: { type: "object", properties: { user: { $ref: "#/components/schemas/User" } } } } } },
+          "200": { description: "Demo session started", content: { "application/json": { schema: { $ref: "#/components/schemas/AuthResponse" } } } },
           "500": { description: "Demo session failed", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
         }
       }
@@ -151,7 +191,7 @@ const openApiDocument = {
       get: {
         tags: ["Authentication"],
         summary: "Get the current user",
-        security: [{ sessionCookie: [] }],
+        security: [{ bearerAuth: [] }, { sessionCookie: [] }],
         responses: {
           "200": { description: "Current user", content: { "application/json": { schema: { type: "object", properties: { user: { $ref: "#/components/schemas/User" } } } } } },
           "401": { description: "Not authenticated", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
@@ -172,7 +212,7 @@ const openApiDocument = {
       get: {
         tags: ["Dashboard"],
         summary: "Get dashboard data",
-        security: [{ sessionCookie: [] }],
+        security: [{ bearerAuth: [] }, { sessionCookie: [] }],
         responses: {
           "200": { description: "Dashboard data", content: { "application/json": { schema: { type: "object", properties: { message: { type: "string" } } } } } },
           "401": { description: "Not authenticated", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
@@ -204,7 +244,7 @@ app.post("/api/auth/signup", async (req, res) => {
     if (!name || !email || !password || password.length < 6) return res.status(400).json({ message: "Name, email, and a password of at least 6 characters are required." });
     if (await User.findOne({ email })) return res.status(409).json({ message: "An account with this email already exists." });
     const user = await User.create({ name, email, password: await bcrypt.hash(password, 12), role: "operator" });
-    req.login(user, (error) => error ? res.status(500).json({ message: "Unable to start your session." }) : res.status(201).json({ user: publicUser(user) }));
+    req.login(user, (error) => error ? res.status(500).json({ message: "Unable to start your session." }) : res.status(201).json(createAuthResponse(user)));
   } catch (error) { res.status(500).json({ message: "Unable to create account." }); }
 });
 app.post("/api/auth/login", async (req, res) => {
@@ -215,10 +255,10 @@ app.post("/api/auth/login", async (req, res) => {
     const isDemo = email === "demo@traffic.ai" && password === "Demo@123";
     if (!user && isDemo) {
       const demo = await User.create({ name: "Demo Operator", email, password: await bcrypt.hash(password, 12), role: "admin" });
-      return req.login(demo, (error) => error ? res.status(500).json({ message: "Unable to start your session." }) : res.json({ user: publicUser(demo) }));
+      return req.login(demo, (error) => error ? res.status(500).json({ message: "Unable to start your session." }) : res.json(createAuthResponse(demo)));
     }
     if (!user || !user.password || !(await bcrypt.compare(password, user.password))) return res.status(401).json({ message: "Invalid email or password." });
-    req.login(user, (error) => error ? res.status(500).json({ message: "Unable to start your session." }) : res.json({ user: publicUser(user) }));
+    req.login(user, (error) => error ? res.status(500).json({ message: "Unable to start your session." }) : res.json(createAuthResponse(user)));
   } catch (error) { res.status(500).json({ message: "Unable to sign in." }); }
 });
 app.post("/api/auth/demo", async (req, res) => {
@@ -238,7 +278,7 @@ app.post("/api/auth/demo", async (req, res) => {
     );
     req.login(demo, (error) => error
       ? res.status(500).json({ message: "Unable to start the demo session." })
-      : res.json({ user: publicUser(demo) }));
+      : res.json(createAuthResponse(demo)));
   } catch (error) {
     console.error("Demo login failed:", error);
     res.status(500).json({ message: "Unable to start the demo session." });
@@ -260,4 +300,8 @@ async function start() {
   if (process.env.MONGODB_URI) await mongoose.connect(process.env.MONGODB_URI);
   app.listen(port, () => console.log(`Traffic API listening on port ${port}`));
 }
-start().catch((error) => { console.error("Unable to start server:", error); process.exit(1); });
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  start().catch((error) => { console.error("Unable to start server:", error); process.exit(1); });
+}
+
+export { app };

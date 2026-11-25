@@ -30,6 +30,11 @@ Restart the client after setting the key. Without it, the map falls back to Open
 
 Swagger UI is available at `http://localhost:5000/api/docs`.
 The OpenAPI 3 specification is available at `http://localhost:5000/api/openapi.json`.
+In Swagger UI, run **POST /api/auth/demo** (or signup/login), copy the returned `accessToken`, then click **Authorize** and enter the token. Use it to call protected endpoints such as **GET /api/auth/me** and **GET /api/dashboard**. Bearer tokens expire after 15 minutes and cannot be revoked early; logout clears the existing session cookie, which remains supported alongside bearer tokens.
+
+## Tests
+
+Run `npm test` for API endpoint tests. They start the API on a temporary local port and do not require MongoDB. Jenkins runs this command in its **Install and test** stage. The Selenium browser flow is separate and requires the complete application to be running; run it with `npm run test:e2e`.
 
 ## Selenium browser test
 
@@ -77,5 +82,6 @@ In Jenkins, open **Manage Jenkins → Credentials → System → Global credenti
 |---|---|
 | `traffic-google-client-id` | OAuth 2.0 Web application client ID |
 | `traffic-google-client-secret` | OAuth 2.0 Web application client secret |
+| `traffic-ngrok-authtoken` | ngrok account authtoken |
 
-The Jenkins pipeline generates a fresh 48-byte session-signing secret for each deployment, so no session-secret credential is required; users may need to sign in again after a deploy. It deploys to `http://localhost:5001` by default; change the `APP_HOST_PORT` build parameter if that port is occupied. Add `http://localhost:5001` as an authorized origin and `http://localhost:5001/auth/google/callback` as an authorized redirect URI in Google OAuth (if you change the port parameter, update these URLs too; keep the port-5000 callback for local Node development). The Jenkins agent must have Docker and Docker Compose v2 available, plus the two credentials listed above. Deployment waits for the container's `/api/health` check and updates the app without stopping the persistent MongoDB service.
+The Jenkins agent must have Docker, Docker Compose v2, Node.js, and the ngrok CLI available, plus all three credentials listed above. The pipeline starts an HTTPS ngrok tunnel to the configured `APP_HOST_PORT` before deployment and passes its public URL to the app (including the Google OAuth callback). The tunnel stays active after a successful build and is replaced on the next build; it is stopped if the build fails. Set the optional `NGROK_DOMAIN` build parameter to an ngrok reserved domain for a stable URL. For Google sign-in, authorize the tunnel's HTTPS origin and `/auth/google/callback` redirect URI in Google OAuth; a randomly assigned ngrok URL changes between builds and must be authorized before sign-in will work. Keep the port-5000 callback authorized for local Node development. The Jenkins pipeline generates a fresh 48-byte session-signing secret for each deployment, so users may need to sign in again after a deploy. Deployment waits for the container's `/api/health` check and updates the app without stopping the persistent MongoDB service.
