@@ -27,7 +27,7 @@ test("health endpoint returns the API status and service name", async () => {
 
   assert.equal(response.status, 200);
   assert.deepEqual(await response.json(), {
-    status: "ok",
+    status: "intentional-demo-failure",
     service: "traffic-violation-api"
   });
 });
