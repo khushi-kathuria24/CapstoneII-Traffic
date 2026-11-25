@@ -9,9 +9,6 @@ An agent-ready smart traffic management foundation with a polished operator logi
 3. Install and start MongoDB, then run:
 
 ```powershell
-npm install
-npm run install:all
-npm run dev
 ```
 
 The client runs at `http://localhost:5174` and the API at `http://localhost:5000`. Demo access is `demo@traffic.ai` / `Demo@123`.
